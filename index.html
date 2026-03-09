@@ -1,73 +1,269 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-<meta charset="UTF-8">
-<title>Backrooms Facts</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Backrooms 3D</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+      background: #000;
+    }
 
-<style>
+    #info {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      color: #111;
+      background: rgba(230, 220, 150, 0.9);
+      padding: 12px 16px;
+      border-radius: 8px;
+      z-index: 10;
+      max-width: 320px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.4);
+    }
 
-body{
-background:#e8d98b;
-font-family:Arial, sans-serif;
-color:#222;
-text-align:center;
-margin:0;
-}
+    #startBtn {
+      margin-top: 10px;
+      padding: 10px 14px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      background: #cdbf72;
+      font-weight: bold;
+    }
 
-.header{
-background:#d6c46b;
-padding:20px;
-box-shadow:0 0 20px rgba(0,0,0,0.4);
-}
-
-.fact{
-background:#f3e7a6;
-margin:30px auto;
-padding:20px;
-width:70%;
-border-radius:5px;
-box-shadow:0 0 15px rgba(0,0,0,0.5);
-}
-
-h1{
-letter-spacing:2px;
-}
-
-</style>
-
+    #crosshair {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 8px;
+      height: 8px;
+      margin-left: -4px;
+      margin-top: -4px;
+      background: rgba(255,255,255,0.8);
+      border-radius: 50%;
+      z-index: 5;
+      pointer-events: none;
+    }
+  </style>
 </head>
-
 <body>
+  <div id="info">
+    <b>Backrooms Level 0</b><br>
+    Нажми кнопку ниже, потом кликай по экрану.<br>
+    Ходьба: WASD<br>
+    Прыжка тут нет.
+    <br>
+    <button id="startBtn">Начать</button>
+  </div>
 
-<div class="header">
-<h1>Backrooms Level 0</h1>
-<p>Факты о Backrooms</p>
-</div>
+  <div id="crosshair"></div>
 
-<div class="fact">
-<h2>Факт 1</h2>
-<p>Backrooms — это бесконечный лабиринт жёлтых офисных комнат.</p>
-</div>
+  <script type="module">
+    import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
+    import { PointerLockControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/PointerLockControls.js';
 
-<div class="fact">
-<h2>Факт 2</h2>
-<p>Самый известный уровень — Level 0. Он состоит из одинаковых помещений с ковром и лампами.</p>
-</div>
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0xd8cc7a, 10, 90);
 
-<div class="fact">
-<h2>Факт 3</h2>
-<p>Попасть в Backrooms можно, если случайно "noclip" из реальности.</p>
-</div>
+    const camera = new THREE.PerspectiveCamera(
+      75,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      1000
+    );
+    camera.position.set(0, 2, 8);
 
-<div class="fact">
-<h2>Факт 4</h2>
-<p>В некоторых уровнях живут опасные сущности.</p>
-</div>
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    document.body.appendChild(renderer.domElement);
 
-<div class="fact">
-<h2>Факт 5</h2>
-<p>Backrooms стали популярны после видео Kane Pixels.</p>
-</div>
+    const controls = new PointerLockControls(camera, document.body);
 
+    const startBtn = document.getElementById('startBtn');
+    const info = document.getElementById('info');
+
+    startBtn.addEventListener('click', () => {
+      controls.lock();
+    });
+
+    controls.addEventListener('lock', () => {
+      info.style.display = 'none';
+    });
+
+    controls.addEventListener('unlock', () => {
+      info.style.display = 'block';
+    });
+
+    // Свет
+    const ambientLight = new THREE.AmbientLight(0xfff4c2, 0.9);
+    scene.add(ambientLight);
+
+    const mainLight = new THREE.PointLight(0fffcc99, 1.8, 100);
+    mainLight.position.set(0, 6, 0);
+    mainLight.castShadow = true;
+    scene.add(mainLight);
+
+    const light2 = new THREE.PointLight(0xfff0aa, 1.2, 80);
+    light2.position.set(20, 6, -20);
+    scene.add(light2);
+
+    const light3 = new THREE.PointLight(0xfff0aa, 1.2, 80);
+    light3.position.set(-20, 6, 20);
+    scene.add(light3);
+
+    // Материалы
+    const wallMaterial = new THREE.MeshStandardMaterial({
+      color: 0xd8cc7a
+    });
+
+    const floorMaterial = new THREE.MeshStandardMaterial({
+      color: 0xb8aa66
+    });
+
+    const ceilingMaterial = new THREE.MeshStandardMaterial({
+      color: 0xe8dfad
+    });
+
+    // Пол
+    const floor = new THREE.Mesh(
+      new THREE.PlaneGeometry(120, 120),
+      floorMaterial
+    );
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    // Потолок
+    const ceiling = new THREE.Mesh(
+      new THREE.PlaneGeometry(120, 120),
+      ceilingMaterial
+    );
+    ceiling.rotation.x = Math.PI / 2;
+    ceiling.position.y = 6;
+    scene.add(ceiling);
+
+    // Стены комнаты
+    function createWall(x, y, z, w, h, d) {
+      const wall = new THREE.Mesh(
+        new THREE.BoxGeometry(w, h, d),
+        wallMaterial
+      );
+      wall.position.set(x, y, z);
+      wall.castShadow = true;
+      wall.receiveShadow = true;
+      scene.add(wall);
+      return wall;
+    }
+
+    const walls = [];
+
+    // Внешние стены
+    walls.push(createWall(0, 3, -30, 60, 6, 1));
+    walls.push(createWall(0, 3, 30, 60, 6, 1));
+    walls.push(createWall(-30, 3, 0, 1, 6, 60));
+    walls.push(createWall(30, 3, 0, 1, 6, 60));
+
+    // Внутренние стены для атмосферы Backrooms
+    walls.push(createWall(0, 3, 0, 20, 6, 1));
+    walls.push(createWall(-10, 3, 10, 1, 6, 20));
+    walls.push(createWall(12, 3, -12, 1, 6, 20));
+    walls.push(createWall(18, 3, 8, 18, 6, 1));
+    walls.push(createWall(-18, 3, -8, 18, 6, 1));
+    walls.push(createWall(-5, 3, -20, 1, 6, 15));
+    walls.push(createWall(8, 3, 20, 1, 6, 12));
+
+    // "Лампы" на потолке
+    function createLamp(x, z) {
+      const lamp = new THREE.Mesh(
+        new THREE.BoxGeometry(4, 0.2, 2),
+        new THREE.MeshStandardMaterial({ color: 0xffffdd, emissive: 0x777744 })
+      );
+      lamp.position.set(x, 5.9, z);
+      scene.add(lamp);
+    }
+
+    for (let x = -20; x <= 20; x += 10) {
+      for (let z = -20; z <= 20; z += 10) {
+        createLamp(x, z);
+      }
+    }
+
+    // Движение
+    const keys = {
+      w: false,
+      a: false,
+      s: false,
+      d: false
+    };
+
+    document.addEventListener('keydown', (e) => {
+      const key = e.key.toLowerCase();
+      if (key in keys) keys[key] = true;
+    });
+
+    document.addEventListener('keyup', (e) => {
+      const key = e.key.toLowerCase();
+      if (key in keys) keys[key] = false;
+    });
+
+    const playerVelocity = new THREE.Vector3();
+    const direction = new THREE.Vector3();
+    const speed = 6;
+    const clock = new THREE.Clock();
+
+    function updateMovement(delta) {
+      if (!controls.isLocked) return;
+
+      playerVelocity.x = 0;
+      playerVelocity.z = 0;
+
+      if (keys.w) playerVelocity.z -= speed * delta;
+      if (keys.s) playerVelocity.z += speed * delta;
+      if (keys.a) playerVelocity.x -= speed * delta;
+      if (keys.d) playerVelocity.x += speed * delta;
+
+      controls.moveRight(playerVelocity.x);
+      controls.moveForward(playerVelocity.z);
+
+      // Ограничение, чтобы не выходить совсем далеко
+      const pos = camera.position;
+      pos.x = Math.max(-28, Math.min(28, pos.x));
+      pos.z = Math.max(-28, Math.min(28, pos.z));
+      pos.y = 2;
+    }
+
+    // Лёгкое мигание света
+    function flickerLights(time) {
+      mainLight.intensity = 1.6 + Math.sin(time * 8) * 0.08;
+      if (Math.random() < 0.01) {
+        mainLight.intensity = 1.1;
+      }
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const delta = clock.getDelta();
+      const time = clock.elapsedTime;
+
+      updateMovement(delta);
+      flickerLights(time);
+
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
 </body>
 </html>
